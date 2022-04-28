@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/draft-ERC721Votes.sol";
+import "./IContractInvest.sol";
 
 contract GovernorContract is
     Governor,
@@ -17,6 +18,8 @@ contract GovernorContract is
 {
     uint256 public s_votingDelay;
     uint256 public s_votingPeriod;
+    IContractInvest public s_investContract;
+    event InvestmentEvent(IContractInvest investContract);
 
     constructor(
         ERC721Votes _token,
@@ -80,6 +83,17 @@ contract GovernorContract is
         return super.propose(targets, values, calldatas, description);
     }
 
+    function getInvestContractAddress() public view returns (IContractInvest) {
+        return s_investContract;
+    }
+
+    function setInvestContractAddress(IContractInvest investContractAddress)
+        public
+    {
+        s_investContract = investContractAddress;
+        emit InvestmentEvent(investContractAddress);
+    }
+
     function _execute(
         uint256 proposalId,
         address[] memory targets,
@@ -88,6 +102,7 @@ contract GovernorContract is
         bytes32 descriptionHash
     ) internal override(Governor, GovernorTimelockControl) {
         super._execute(proposalId, targets, values, calldatas, descriptionHash);
+        s_investContract.includeBusiness(proposalId, descriptionHash);
     }
 
     function _cancel(
