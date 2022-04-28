@@ -20,6 +20,7 @@ contract GovernorContract is
     uint256 public s_votingPeriod;
     IContractInvest public s_investContract;
     event InvestmentEvent(IContractInvest investContract);
+    mapping(uint256 => address) public addressToProposalId;
 
     constructor(
         ERC721Votes _token,
@@ -80,7 +81,14 @@ contract GovernorContract is
         bytes[] memory calldatas,
         string memory description
     ) public override(Governor, IGovernor) returns (uint256) {
-        return super.propose(targets, values, calldatas, description);
+        uint256 proposalId = super.propose(
+            targets,
+            values,
+            calldatas,
+            description
+        );
+        addressToProposalId[proposalId] = msg.sender;
+        return proposalId;
     }
 
     function getInvestContractAddress() public view returns (IContractInvest) {
@@ -102,7 +110,11 @@ contract GovernorContract is
         bytes32 descriptionHash
     ) internal override(Governor, GovernorTimelockControl) {
         super._execute(proposalId, targets, values, calldatas, descriptionHash);
-        s_investContract.includeBusiness(proposalId, descriptionHash);
+        s_investContract.includeBusiness(
+            proposalId,
+            addressToProposalId[proposalId],
+            descriptionHash
+        );
     }
 
     function _cancel(
