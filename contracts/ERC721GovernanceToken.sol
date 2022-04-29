@@ -13,7 +13,7 @@ contract ERC721GovernanceToken is ERC721URIStorage, ERC721Votes, Ownable {
 
     constructor()
         ERC721("GovernanceToken", "GT")
-        EIP712("GovernanceToken", "GT")
+        EIP712("Invesitfy", "^0.8.0")
     {
         console.log("GovernanceToken constructor");
     }
